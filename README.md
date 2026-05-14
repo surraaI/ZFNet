@@ -2,6 +2,12 @@
 
 PyTorch implementations of **LeNet-5** and a **CIFAR-10–adapted ZFNet** for studying how early CNN architectures differ in inductive bias, capacity, and compute.
 
+## Team Members
+
+- Birhanu Asmamaw Baye — UGR/2204/13
+- Sifan Fita — UGR/8856/14
+- Sura Itana — UGR/2347/14
+
 ## Setup
 
 ```bash
@@ -28,6 +34,7 @@ For GPU wheels, install PyTorch from the official selector instead of the CPU-on
 Checkpoints are written to `./checkpoints/`. CIFAR-10 is downloaded into `./data/` on first run.
 
 Recent run results:
+
 - LeNet-5 on MNIST reached a best test accuracy of **99.09%** after 10 epochs.
 
 ## Report
