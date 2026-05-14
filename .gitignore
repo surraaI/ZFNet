@@ -12,3 +12,8 @@ data/
 *.pth
 *.joblib
 *.pt
+data/
+checkpoints/
+*.pth
+*.pt
+*.joblib
