@@ -47,7 +47,17 @@ class LeNet5(nn.Module):
         self.fc1 = nn.Linear(120, 84)
         self.fc2 = nn.Linear(84, num_classes)
 
-        self.act = nn.Tanh()  # Original LeNet used tanh; matches historical design.
+        # Use ReLU for better CIFAR performance (optionally keep tanh for historical fidelity)
+        self.act = nn.ReLU(inplace=True)
+
+        # Initialize weights
+        self.apply(self._init_weights)
+
+    def _init_weights(self, module: nn.Module) -> None:
+        if isinstance(module, nn.Conv2d) or isinstance(module, nn.Linear):
+            nn.init.kaiming_normal_(module.weight, nonlinearity="relu")
+            if module.bias is not None:
+                nn.init.zeros_(module.bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Block 1: first conv nonlinearity + pooling.

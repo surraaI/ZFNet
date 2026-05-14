@@ -36,32 +36,56 @@ class ZFNet(nn.Module):
 
         # Layer 1: fewer spatial jumps than AlexNet’s first conv — more detail retained.
         self.conv1 = nn.Conv2d(in_channels, 96, kernel_size=5, stride=1, padding=2)
+        self.bn1 = nn.BatchNorm2d(96)
         self.pool1 = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
         # Layer 2: wider (256) mid-level bank of filters.
         self.conv2 = nn.Conv2d(96, 256, kernel_size=5, stride=1, padding=2)
+        self.bn2 = nn.BatchNorm2d(256)
         self.pool2 = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
         # Layers 3–5: repeated 3×3 conv blocks (384 / 384 / 256) as in the paper’s trunk.
         self.conv3 = nn.Conv2d(256, 384, kernel_size=3, stride=1, padding=1)
+        self.bn3 = nn.BatchNorm2d(384)
         self.conv4 = nn.Conv2d(384, 384, kernel_size=3, stride=1, padding=1)
+        self.bn4 = nn.BatchNorm2d(384)
         self.conv5 = nn.Conv2d(384, 256, kernel_size=3, stride=1, padding=1)
+        self.bn5 = nn.BatchNorm2d(256)
         self.pool3 = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
         # Adaptive pooling makes the classifier robust to small shape differences.
         self.head = nn.Sequential(
-            nn.AdaptiveAvgPool2d((1, 1)),
-            nn.Flatten(),
-            nn.Dropout(p=dropout),
-            nn.Linear(256, num_classes),
+          nn.AdaptiveAvgPool2d((1, 1)),
+          nn.Flatten(),
+          nn.Dropout(p=dropout),
+          nn.Linear(256, num_classes),
         )
 
         self.act = nn.ReLU(inplace=True)
 
+        # Initialize weights
+        self.apply(self._init_weights)
+
+    def _init_weights(self, module: nn.Module) -> None:
+        if isinstance(module, nn.Conv2d):
+          nn.init.kaiming_normal_(module.weight, mode="fan_out", nonlinearity="relu")
+          if module.bias is not None:
+            nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.Linear):
+          nn.init.kaiming_normal_(module.weight, nonlinearity="relu")
+          if module.bias is not None:
+            nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.BatchNorm2d):
+          nn.init.ones_(module.weight)
+          nn.init.zeros_(module.bias)
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.pool1(self.act(self.conv1(x)))
-        x = self.pool2(self.act(self.conv2(x)))
-        x = self.act(self.conv3(x))
-        x = self.act(self.conv4(x))
-        x = self.pool3(self.act(self.conv5(x)))
+        x = self.act(self.bn1(self.conv1(x)))
+        x = self.pool1(x)
+        x = self.act(self.bn2(self.conv2(x)))
+        x = self.pool2(x)
+        x = self.act(self.bn3(self.conv3(x)))
+        x = self.act(self.bn4(self.conv4(x)))
+        x = self.act(self.bn5(self.conv5(x)))
+        x = self.pool3(x)
         return self.head(x)
