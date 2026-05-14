@@ -8,3 +8,7 @@ venv/
 checkpoints/
 .pytest_cache/
 .mypy_cache/
+data/
+*.pth
+*.joblib
+*.pt
